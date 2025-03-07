@@ -70,26 +70,46 @@ try:
     corrected = driver.find_element(By.ID, "ContentPlaceHolderMenu_LabelNombreCopiesCorrigees").text
 
     new_data = f"{given},{correcting},{corrected}"
+    print(" ")
 
     # Check if the file exists
     if os.path.exists(file_path):
         # Read the previous data
         with open(file_path, "r") as file:
-            old_data = file.read().strip()
+            old_data = file.read().strip().split(",")  # Split into a list for comparison
 
-        # Compare with new data
-        if new_data == old_data:
-            print("Data haven't changed !")
-        else:
-            print(f"New Data:\nGiven homeworks: {given}\nIn correction: {correcting}\nCorrected: {corrected}")
-            # Update the file
+        # Ensure old_data has expected format (default to empty if not found)
+        old_given = old_data[0] if len(old_data) > 0 else ""
+        old_correcting = old_data[1] if len(old_data) > 1 else ""
+        old_corrected = old_data[2] if len(old_data) > 2 else ""
+
+        # Compare and print only changed values
+        changes = []
+        if given != old_given:
+            changes.append(f"Given homeworks: {given}")
+        if correcting != old_correcting:
+            changes.append(f"In correction: {correcting}")
+        if corrected != old_corrected:
+            changes.append(f"Corrected: {corrected}")
+
+        if changes:
+            print("Data changed ! New :")
+            for change in changes:
+                print(change)
+
+            # Update the file with new data
             with open(file_path, "w") as file:
-                file.write(new_data)
+                file.write(f"{given},{correcting},{corrected}")
+        else:
+            print("Data haven't changed!")
+
     else:
         # File does not exist, create it and save initial data
         with open(file_path, "w") as file:
-            file.write(new_data)
-        print(f"File created with initial data:\nGiven homeworks: {given}\nIn correction: {correcting}\nCorrected: {corrected}")
+            file.write(f"{given},{correcting},{corrected}")
+        print(
+            f"File created with initial data:\nGiven homeworks: {given}\nIn correction: {correcting}\nCorrected: {corrected}")
+
 
 except Exception as e:
     print("An error occurred:", e)
