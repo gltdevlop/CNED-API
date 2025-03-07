@@ -1,3 +1,4 @@
+from flask import Flask, jsonify
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -5,111 +6,90 @@ from selenium.webdriver.common.keys import Keys
 import time
 import os
 
-# Set up WebDriver (Make sure you have ChromeDriver installed)
+app = Flask(__name__)
 
-print("-- Setting chrome options --")
-chrome_options = Options()
-chrome_options.add_argument("--headless")  # Run in headless mode (no UI)
-chrome_options.add_argument("--disable-gpu")  # Prevent potential GPU-related issues
-chrome_options.add_argument("--window-size=1920x1080")  # Set a virtual window size
-chrome_options.add_argument("--no-sandbox")  # Bypass OS security model (useful for Linux servers)
-chrome_options.add_argument("--disable-dev-shm-usage")  # Prevent shared memory issues in containers
 
-driver = webdriver.Chrome(options=chrome_options)
+def scrape_data():
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--window-size=1920x1080")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
 
-# Step 1: Open the login page
-print("-- Opening page --")
+    driver = webdriver.Chrome(options=chrome_options)
 
-login_url = "https://copiesenligne.cned.fr/Accueil.aspx"
-driver.get(login_url)
+    login_url = "https://copiesenligne.cned.fr/Accueil.aspx"
+    driver.get(login_url)
+    time.sleep(1)
 
-# Wait for redirection to login page
-time.sleep(1)
+    creds = "creds.txt"
 
-# Step 2: Enter login credentials
-creds = "creds.txt"
-
-if os.path.exists(creds):
-    with open(creds, "r") as file:
-        lines = file.readlines()
-
-        creds1 = lines[0].strip() if len(lines) > 0 else ""
-        creds2 = lines[1].strip() if len(lines) > 1 else ""
-
-else:
-    creds1, creds2 = "", ""
-
-username = creds1
-password = creds2
-
-# Find the username field and enter the username
-username_field = driver.find_element(By.NAME, "UserName")
-username_field.send_keys(username)
-
-# Find the password field and enter the password
-password_field = driver.find_element(By.NAME, "Password")
-password_field.send_keys(password)
-
-# Submit the login form
-print("-- Logging in --")
-
-password_field.send_keys(Keys.RETURN)
-
-# Step 3: Wait for the redirection to the main page
-time.sleep(2)
-
-# Step 4: Scrape the data from the span
-file_path = "data.txt"
-
-try:
-    print("-- Getting data --")
-
-    given = driver.find_element(By.ID, "ContentPlaceHolderMenu_LabelNombreCopiesDeposees").text
-    correcting = driver.find_element(By.ID, "ContentPlaceHolderMenu_LabelNombreCorrectionsEnCours").text
-    corrected = driver.find_element(By.ID, "ContentPlaceHolderMenu_LabelNombreCopiesCorrigees").text
-
-    new_data = f"{given},{correcting},{corrected}"
-    print(" ")
-
-    if os.path.exists(file_path):
-        # Read the previous data
-        with open(file_path, "r") as file:
-            old_data = file.read().strip().split(",")  # Split into a list for comparison
-
-        # Ensure old_data has expected format (default to empty if not found)
-        old_given = old_data[0] if len(old_data) > 0 else ""
-        old_correcting = old_data[1] if len(old_data) > 1 else ""
-        old_corrected = old_data[2] if len(old_data) > 2 else ""
-
-        # Compare and print only changed values
-        changes = []
-        if given != old_given:
-            changes.append(f"Given homeworks: {given}")
-        if correcting != old_correcting:
-            changes.append(f"In correction: {correcting}")
-        if corrected != old_corrected:
-            changes.append(f"Corrected: {corrected}")
-
-        if changes:
-            print("Data changed ! New :")
-            for change in changes:
-                print(change)
-
-            # Update the file with new data
-            with open(file_path, "w") as file:
-                file.write(f"{given},{correcting},{corrected}")
-        else:
-            print("Data haven't changed!")
-
+    if os.path.exists(creds):
+        with open(creds, "r") as file:
+            lines = file.readlines()
+            creds1 = lines[0].strip() if len(lines) > 0 else ""
+            creds2 = lines[1].strip() if len(lines) > 1 else ""
     else:
-        # File does not exist, create it and save initial data
-        with open(file_path, "w") as file:
-            file.write(f"{given},{correcting},{corrected}")
-        print(
-            f"File created with initial data:\nGiven homeworks: {given}\nIn correction: {correcting}\nCorrected: {corrected}")
+        return {"error": "Credentials file not found"}
 
-except Exception as e:
-    print("An error occurred:", e)
+    try:
+        username_field = driver.find_element(By.NAME, "UserName")
+        username_field.send_keys(creds1)
 
-# Close the browser
-driver.quit()
+        password_field = driver.find_element(By.NAME, "Password")
+        password_field.send_keys(creds2)
+
+        password_field.send_keys(Keys.RETURN)
+
+        time.sleep(2)
+
+        given = driver.find_element(By.ID, "ContentPlaceHolderMenu_LabelNombreCopiesDeposees").text
+        correcting = driver.find_element(By.ID, "ContentPlaceHolderMenu_LabelNombreCorrectionsEnCours").text
+        corrected = driver.find_element(By.ID, "ContentPlaceHolderMenu_LabelNombreCopiesCorrigees").text
+
+        file_path = "data.txt"
+        new_data = f"{given},{correcting},{corrected}"
+
+        old_given, old_correcting, old_corrected = "", "", ""
+
+        if os.path.exists(file_path):
+            with open(file_path, "r") as file:
+                old_data = file.read().strip().split(",")
+            old_given = old_data[0] if len(old_data) > 0 else ""
+            old_correcting = old_data[1] if len(old_data) > 1 else ""
+            old_corrected = old_data[2] if len(old_data) > 2 else ""
+
+            with open(file_path, "w") as file:
+                file.write(new_data)
+        else:
+            with open(file_path, "w") as file:
+                file.write(new_data)
+
+        driver.quit()
+        return {
+            "old_data": {
+                "given_homeworks": old_given,
+                "in_correction": old_correcting,
+                "corrected": old_corrected
+            },
+            "new_data": {
+                "given_homeworks": given,
+                "in_correction": correcting,
+                "corrected": corrected
+            }
+        }
+
+    except Exception as e:
+        driver.quit()
+        return {"error": str(e)}
+
+
+@app.route('/hws', methods=['GET'])
+def scrape_endpoint():
+    result = scrape_data()
+    return jsonify(result)
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
