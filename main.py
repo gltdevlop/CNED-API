@@ -24,10 +24,10 @@ login_url = "https://copiesenligne.cned.fr/Accueil.aspx"
 driver.get(login_url)
 
 # Wait for redirection to login page
-time.sleep(1)  # Adjust if necessary
+time.sleep(1)
 
 # Step 2: Enter login credentials
-creds = "creds.txt"  # Path to credentials file
+creds = "creds.txt"
 
 if os.path.exists(creds):
     with open(creds, "r") as file:
@@ -43,11 +43,11 @@ username = creds1
 password = creds2
 
 # Find the username field and enter the username
-username_field = driver.find_element(By.NAME, "UserName")  # Adjust if needed
+username_field = driver.find_element(By.NAME, "UserName")
 username_field.send_keys(username)
 
 # Find the password field and enter the password
-password_field = driver.find_element(By.NAME, "Password")  # Adjust if needed
+password_field = driver.find_element(By.NAME, "Password")
 password_field.send_keys(password)
 
 # Submit the login form
@@ -56,13 +56,12 @@ print("-- Logging in --")
 password_field.send_keys(Keys.RETURN)
 
 # Step 3: Wait for the redirection to the main page
-time.sleep(2)  # Adjust if needed
+time.sleep(2)
 
 # Step 4: Scrape the data from the span
 file_path = "data.txt"
 
 try:
-    # Scraping the data
     print("-- Getting data --")
 
     given = driver.find_element(By.ID, "ContentPlaceHolderMenu_LabelNombreCopiesDeposees").text
@@ -72,7 +71,6 @@ try:
     new_data = f"{given},{correcting},{corrected}"
     print(" ")
 
-    # Check if the file exists
     if os.path.exists(file_path):
         # Read the previous data
         with open(file_path, "r") as file:
@@ -110,10 +108,8 @@ try:
         print(
             f"File created with initial data:\nGiven homeworks: {given}\nIn correction: {correcting}\nCorrected: {corrected}")
 
-
 except Exception as e:
     print("An error occurred:", e)
-
 
 # Close the browser
 driver.quit()
