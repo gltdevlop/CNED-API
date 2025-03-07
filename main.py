@@ -1,13 +1,25 @@
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import time
 import os
 
 # Set up WebDriver (Make sure you have ChromeDriver installed)
-driver = webdriver.Chrome()
+
+print("-- Setting chrome options --")
+chrome_options = Options()
+chrome_options.add_argument("--headless")  # Run in headless mode (no UI)
+chrome_options.add_argument("--disable-gpu")  # Prevent potential GPU-related issues
+chrome_options.add_argument("--window-size=1920x1080")  # Set a virtual window size
+chrome_options.add_argument("--no-sandbox")  # Bypass OS security model (useful for Linux servers)
+chrome_options.add_argument("--disable-dev-shm-usage")  # Prevent shared memory issues in containers
+
+driver = webdriver.Chrome(options=chrome_options)
 
 # Step 1: Open the login page
+print("-- Opening page --")
+
 login_url = "https://copiesenligne.cned.fr/Accueil.aspx"
 driver.get(login_url)
 
@@ -39,6 +51,8 @@ password_field = driver.find_element(By.NAME, "Password")  # Adjust if needed
 password_field.send_keys(password)
 
 # Submit the login form
+print("-- Logging in --")
+
 password_field.send_keys(Keys.RETURN)
 
 # Step 3: Wait for the redirection to the main page
@@ -49,6 +63,8 @@ file_path = "data.txt"
 
 try:
     # Scraping the data
+    print("-- Getting data --")
+
     given = driver.find_element(By.ID, "ContentPlaceHolderMenu_LabelNombreCopiesDeposees").text
     correcting = driver.find_element(By.ID, "ContentPlaceHolderMenu_LabelNombreCorrectionsEnCours").text
     corrected = driver.find_element(By.ID, "ContentPlaceHolderMenu_LabelNombreCopiesCorrigees").text
@@ -63,7 +79,7 @@ try:
 
         # Compare with new data
         if new_data == old_data:
-            print("Data haven't changed")
+            print("Data haven't changed !")
         else:
             print(f"New Data:\nGiven homeworks: {given}\nIn correction: {correcting}\nCorrected: {corrected}")
             # Update the file
