@@ -43,6 +43,10 @@
         }
       }
   ```
+- When you fetch ```http://ip:5000/checkall```, it returns the amount of corrected/In correction since the last ping
+- When you fetch ```http://ip:5000/check_cor```, it returns the amount of corrected since the last ping
+- When you fetch ```http://ip:5000/check_incor```, it returns the amount of in correction since the last ping
+
 
 You can easily integrate this with discord bot or anything to run the endpoint and get data.
   
