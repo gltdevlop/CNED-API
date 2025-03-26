@@ -4,9 +4,10 @@
 ### How to make it work ?  
 - Install python
 - Run ```pip install -r requirements.txt``` in the folder
-- Put your username in the first line and password in the second of the creds.txt file (you have to create it)
+- Create a credentials file, put your username in 1st line and Password in 2nd
+- Go to vars.py, change creds.txt to yout file path (leave it to creds.txt if your file is in the folder of the project, named creds.txt)
 - Run the app
-- Go to ``` http://localhost:5000/hws```  to get the data !
+- Go to ``` http://your-ip:5000/hws```  to get the data !
 
 
 ### How to use it ?  
