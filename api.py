@@ -1,5 +1,5 @@
-from flask import Flask, jsonify, make_response
-from scrap_tools.scraper import scrape_data, checking, checking_incor, checking_cor
+from flask import Flask
+from scrap_tools.scraper import scrape_data, checking, checking_incor, checking_cor, scrape_data_ns
 from vars import *
 
 app = Flask(__name__)
@@ -10,6 +10,12 @@ from flask import Response
 @app.route('/hws', methods=['GET'])
 def scrape_endpoint():
     data = scrape_data(creds, 'data.txt')
+    json_data = json.dumps(data, ensure_ascii=False)
+    return Response(json_data, content_type="application/json; charset=utf-8")
+
+@app.route('/hws_ns', methods=['GET'])
+def scrape_nosave():
+    data = scrape_data_ns(creds)
     json_data = json.dumps(data, ensure_ascii=False)
     return Response(json_data, content_type="application/json; charset=utf-8")
 

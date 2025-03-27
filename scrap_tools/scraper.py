@@ -97,6 +97,60 @@ def scrape_data(creds, data):
     except Exception as e:
         driver.quit()
         return {"error": str(e)}
+    
+
+def scrape_data_ns(creds):
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--window-size=1920x1080")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+
+    driver = webdriver.Chrome(options=chrome_options)
+
+    login_url = "https://copiesenligne.cned.fr/Accueil.aspx"
+    driver.get(login_url)
+    time.sleep(1)
+
+    creds = creds
+
+    if os.path.exists(creds):
+        with open(creds, "r") as file:
+            lines = file.readlines()
+            creds1 = lines[0].strip() if len(lines) > 0 else ""
+            creds2 = lines[1].strip() if len(lines) > 1 else ""
+    else:
+        return {"error": "Credentials file not found"}
+
+    try:
+        username_field = driver.find_element(By.NAME, "UserName")
+        username_field.send_keys(creds1)
+
+        password_field = driver.find_element(By.NAME, "Password")
+        password_field.send_keys(creds2)
+
+        password_field.send_keys(Keys.RETURN)
+
+        time.sleep(2)
+
+        given = driver.find_element(By.ID, "ContentPlaceHolderMenu_LabelNombreCopiesDeposees").text
+        correcting = driver.find_element(By.ID, "ContentPlaceHolderMenu_LabelNombreCorrectionsEnCours").text
+        corrected = driver.find_element(By.ID, "ContentPlaceHolderMenu_LabelNombreCopiesCorrigees").text
+
+
+        driver.quit()
+
+        return {
+                "data": {
+                    "given_homeworks": given,
+                    "in_correction": correcting,
+                    "corrected": corrected
+                }
+            }
+    except Exception as e:
+        driver.quit()
+        return {"error": str(e)}
 
 
 def checking():
