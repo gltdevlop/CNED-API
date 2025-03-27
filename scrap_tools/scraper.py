@@ -16,6 +16,7 @@ def scrape_data(creds, data):
     chrome_options.add_argument("--window-size=1920x1080")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
+    print("CNED-API Scraper || Putting Chrome Settings...")
 
     driver = webdriver.Chrome(options=chrome_options)
 
@@ -36,17 +37,26 @@ def scrape_data(creds, data):
     try:
         username_field = driver.find_element(By.NAME, "UserName")
         username_field.send_keys(creds1)
+        print("CNED-API Scraper || Entering CNED Username...")
+
 
         password_field = driver.find_element(By.NAME, "Password")
         password_field.send_keys(creds2)
+        print("CNED-API Scraper || Entering CNED Password...")
 
         password_field.send_keys(Keys.RETURN)
+        print("CNED-API Scraper || Sending Login Form...")
+
 
         time.sleep(2)
+
+        print("CNED-API Scraper || Scraping datas...")
 
         given = driver.find_element(By.ID, "ContentPlaceHolderMenu_LabelNombreCopiesDeposees").text
         correcting = driver.find_element(By.ID, "ContentPlaceHolderMenu_LabelNombreCorrectionsEnCours").text
         corrected = driver.find_element(By.ID, "ContentPlaceHolderMenu_LabelNombreCopiesCorrigees").text
+        print("CNED-API Scraper || Data Scrapped !")
+
 
         data_path = data
         new_data = f"{given},{correcting},{corrected}"
@@ -65,8 +75,13 @@ def scrape_data(creds, data):
         else:
             with open(data_path, "w") as file:
                 file.write(new_data)
+        
+        print("CNED-API Scraper || Saving datas in data.txt file...")
+
 
         driver.quit()
+        print("CNED-API Scraper || Sending data to the pinger !")
+
 
         if not os.path.exists(data_path):
             return {
@@ -94,6 +109,7 @@ def scrape_data(creds, data):
                     "corrected": corrected
                 }
             }
+    
     except Exception as e:
         driver.quit()
         return {"error": str(e)}
